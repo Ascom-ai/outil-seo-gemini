@@ -70,7 +70,7 @@ if st.button("Lancer l'analyse stratégique"):
 
                 # Appel à l'API Gemini avec Google Search
                 response = client.models.generate_content(
-                    model="gemini-2.0-flash",
+                    model="gemini-1.5-flash",
                     contents=prompt,
                     config=types.GenerateContentConfig(
                         tools=[types.Tool(google_search=types.GoogleSearch())]

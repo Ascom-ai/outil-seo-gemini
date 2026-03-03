@@ -33,27 +33,32 @@ if st.button("Lancer l'analyse stratégique"):
             # Configuration de la bibliothèque
             genai.configure(api_key=api_key)
             
-            # SYNTAXE CORRIGÉE POUR L'OUTIL SEARCH
-            # On utilise 'google_search_retrieval' au lieu de 'google_search'
+            # CORRECTIF 404 : On utilise le nom court 'gemini-1.5-flash' 
+            # et on passe l'outil Google Search
             model = genai.GenerativeModel(
                 model_name='gemini-1.5-flash',
                 tools=[{'google_search_retrieval': {}}]
             )
             
             with st.spinner(f"Recherche Google en direct pour {profession} à {city}..."):
-                prompt = f"Expert SEO : Analyse la SERP pour '{profession} à {city}'. Donne le top 5, les points forts des concurrents et une stratégie SEO pour l'objectif '{goal}' en Français."
+                prompt = f"Expert SEO : Analyse la SERP Google pour '{profession} à {city}'. Donne le top 5 des sites, les points forts des concurrents et une stratégie SEO pour l'objectif '{goal}' en Français."
                 
                 # Appel à l'API
                 response = model.generate_content(prompt)
                 
-                st.success("Analyse terminée !")
-                st.markdown("---")
-                
-                # Affichage du résultat
-                st.markdown(response.text)
+                if response.text:
+                    st.success("✅ Analyse terminée !")
+                    st.markdown("---")
+                    st.markdown(response.text)
+                else:
+                    st.warning("L'IA n'a pas pu générer de texte. Vérifiez votre clé API.")
                 
         except Exception as e:
-            st.error(f"Détails de l'erreur : {e}")
+            # Si l'erreur 404 persiste, on affiche une aide ciblée
+            if "404" in str(e):
+                st.error("Erreur 404 : Le modèle n'est pas reconnu. Essayez de redémarrer l'app (Reboot) sur Streamlit Cloud.")
+            else:
+                st.error(f"Détails de l'erreur : {e}")
 
 # Footer
 st.markdown("---")

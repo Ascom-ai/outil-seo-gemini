@@ -6,99 +6,52 @@ import os
 # Configuration de la page
 st.set_page_config(page_title="SEO Strategist Pro", page_icon="📊", layout="wide")
 
-# Style CSS personnalisé
 st.markdown("""
     <style>
     .main { background-color: #f5f5f5; }
     .stButton>button { width: 100%; background-color: #059669; color: white; border-radius: 10px; }
-    .report-container { background-color: white; padding: 30px; border-radius: 20px; border: 1px solid #e5e5e5; }
     </style>
     """, unsafe_allow_html=True)
 
-# Sidebar pour la configuration
 with st.sidebar:
     st.title("⚙️ Configuration")
     api_key = st.text_input("Clé API Gemini", type="password")
     st.info("Obtenez votre clé sur [Google AI Studio](https://aistudio.google.com/)")
 
 st.title("📊 SEO Strategist Pro")
-st.subheader("Générez une stratégie SEO basée sur l'analyse réelle de la SERP")
+st.subheader("Analyse réelle de la SERP via Gemini")
 
-# Formulaire d'entrée
-with st.container():
-    col1, col2 = st.columns(2)
-    with col1:
-        profession = st.text_input("Profession / Secteur", placeholder="ex: Plombier")
-        target = st.text_input("Cible de l'entreprise", placeholder="ex: Particuliers")
-    with col2:
-        city = st.text_input("Ville / Zone", placeholder="ex: Paris")
-        goal = st.selectbox("Objectif du site", [
-            "Demande de devis", 
-            "Prise de contact / Appel", 
-            "Achat en ligne", 
-            "Prise de rendez-vous"
-        ])
+col1, col2 = st.columns(2)
+with col1:
+    profession = st.text_input("Profession", placeholder="ex: Plombier")
+    target = st.text_input("Cible", placeholder="ex: Particuliers")
+with col2:
+    city = st.text_input("Ville", placeholder="ex: Saint-Maxime")
+    goal = st.selectbox("Objectif", ["Devis", "Contact", "RDV"])
 
-if st.button("Lancer l'analyse stratégique"):
+if st.button("Lancer l'analyse"):
     if not api_key:
-        st.error("Veuillez entrer votre clé API Gemini dans la barre latérale.")
-    elif not profession or not city:
-        st.error("Veuillez remplir au moins la profession et la ville.")
+        st.error("Entre ta clé API !")
     else:
         try:
-            # Initialisation du client
+            # INITIALISATION CORRECTE POUR LE SDK 2.0
             client = genai.Client(api_key=api_key)
             
-            with st.spinner("Analyse de la SERP Google en cours..."):
-                prompt = f"""
-                Agis en tant qu'expert SEO senior. Analyse la SERP Google pour la requête : "{profession} à {city}".
-                
-                Contexte :
-                - Profession : {profession}
-                - Ville : {city}
-                - Cible : {target}
-                - Objectif : {goal}
+            with st.spinner("Recherche Google en cours..."):
+                prompt = f"Analyse SEO pour {profession} à {city}. Cible: {target}. Objectif: {goal}. Donne le top 5 et une stratégie."
 
-                Génère un rapport structuré :
-                1. Analyse du Top 5 (Concurrents) : titres SEO et points forts.
-                2. Estimation du volume de recherche mensuel pour cette localité.
-                3. Stratégie de mots-clés (principaux et longue traîne).
-                4. Note de difficulté SEO (0 à 10) avec justification.
-                5. Plan d'action concret pour passer devant les concurrents.
-                
-                Utilise l'outil Google Search pour des données réelles. Réponds en Français.
-                """
-
-                # Appel à l'API Gemini avec Google Search (Correction du modèle et de la syntaxe)
-                MODEL_ID = "gemini-1.5-flash"
-                
+                # LE CORRECTIF EST ICI : Pas de 'models/' devant le nom
                 response = client.models.generate_content(
-                    model=MODEL_ID,
+                    model="gemini-1.5-flash", 
                     contents=prompt,
                     config=types.GenerateContentConfig(
                         tools=[types.Tool(google_search=types.GoogleSearchRetrieval())]
                     )
                 )
 
-                # Affichage des résultats
                 st.success("Analyse terminée !")
-                
                 st.markdown("---")
-                
-                # Affichage du contenu textuel généré
                 st.markdown(response.text)
-
-                # Affichage des sources si disponibles
-                try:
-                    if response.candidates[0].grounding_metadata and response.candidates[0].grounding_metadata.search_entry_point:
-                        st.markdown("### 🔗 Sources analysées")
-                        st.caption("L'IA a basé son analyse sur les résultats réels de Google Search.")
-                except:
-                    pass
 
         except Exception as e:
             st.error(f"Une erreur est survenue : {e}")
-
-# Footer
-st.markdown("---")
-st.caption("Propulsé par Google Gemini 1.5 Flash & Streamlit")

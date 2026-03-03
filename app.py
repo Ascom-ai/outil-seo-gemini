@@ -46,6 +46,7 @@ if st.button("Lancer l'analyse stratégique"):
         st.error("Veuillez remplir au moins la profession et la ville.")
     else:
         try:
+            # Initialisation du client
             client = genai.Client(api_key=api_key)
             
             with st.spinner("Analyse de la SERP Google en cours..."):
@@ -59,47 +60,45 @@ if st.button("Lancer l'analyse stratégique"):
                 - Objectif : {goal}
 
                 Génère un rapport structuré :
-                1. Analyse du Top 5 (Concurrents)
-                2. Estimation du volume de recherche mensuel
-                3. Stratégie de mots-clés
-                4. Note de difficulté SEO (0 à 10) avec justification
-                5. Plan d'action concret
+                1. Analyse du Top 5 (Concurrents) : titres SEO et points forts.
+                2. Estimation du volume de recherche mensuel pour cette localité.
+                3. Stratégie de mots-clés (principaux et longue traîne).
+                4. Note de difficulté SEO (0 à 10) avec justification.
+                5. Plan d'action concret pour passer devant les concurrents.
                 
                 Utilise l'outil Google Search pour des données réelles. Réponds en Français.
                 """
 
-                # Appel à l'API Gemini avec Google Search
+                # Appel à l'API Gemini avec Google Search (Correction du modèle et de la syntaxe)
+                MODEL_ID = "gemini-1.5-flash"
+                
                 response = client.models.generate_content(
-                    MODEL_ID = "gemini-1.5-flash" 
-
-# Lors de l'appel à la génération :
-response = client.models.generate_content(
-    model=MODEL_ID,
-    contents=prompt,
-    config=types.GenerateContentConfig(
-        tools=[types.Tool(google_search=types.GoogleSearchRetrieval())]
-    )
-)
+                    model=MODEL_ID,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        tools=[types.Tool(google_search=types.GoogleSearchRetrieval())]
+                    )
+                )
 
                 # Affichage des résultats
                 st.success("Analyse terminée !")
                 
-                # Layout du rapport
                 st.markdown("---")
                 
-                # Affichage du contenu principal
+                # Affichage du contenu textuel généré
                 st.markdown(response.text)
 
-                # Affichage des sources (Grounding)
-                if response.candidates[0].grounding_metadata.grounding_chunks:
-                    with st.expander("🔗 Sources et références analysées"):
-                        for chunk in response.candidates[0].grounding_metadata.grounding_chunks:
-                            if chunk.web:
-                                st.write(f"- [{chunk.web.title}]({chunk.web.uri})")
+                # Affichage des sources si disponibles
+                try:
+                    if response.candidates[0].grounding_metadata and response.candidates[0].grounding_metadata.search_entry_point:
+                        st.markdown("### 🔗 Sources analysées")
+                        st.caption("L'IA a basé son analyse sur les résultats réels de Google Search.")
+                except:
+                    pass
 
         except Exception as e:
             st.error(f"Une erreur est survenue : {e}")
 
 # Footer
 st.markdown("---")
-st.caption("Propulsé par Google Gemini 2.0 & Streamlit")
+st.caption("Propulsé par Google Gemini 1.5 Flash & Streamlit")

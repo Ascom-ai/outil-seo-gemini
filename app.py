@@ -23,25 +23,25 @@ with col2:
     goal = st.selectbox("Objectif", ["Devis", "Appel", "RDV"])
 
 # 4. Logique d'exécution
-if st.button("Lancer l'analyse"):
+if st.button("Lancer l'analyse stratégique"):
     if not api_key:
         st.error("Veuillez entrer votre clé API.")
     elif not profession or not city:
         st.error("Veuillez remplir les champs Profession et Ville.")
     else:
         try:
-            # Configuration de la bibliothèque stable
+            # Configuration de la bibliothèque
             genai.configure(api_key=api_key)
             
-            # Initialisation du modèle avec l'outil Google Search
-            # Cette syntaxe est la plus robuste contre les erreurs 404
+            # SYNTAXE CORRIGÉE POUR L'OUTIL SEARCH
+            # On utilise 'google_search_retrieval' au lieu de 'google_search'
             model = genai.GenerativeModel(
                 model_name='gemini-1.5-flash',
-                tools=[{'google_search': {}}]
+                tools=[{'google_search_retrieval': {}}]
             )
             
-            with st.spinner(f"Recherche Google pour {profession} à {city}..."):
-                prompt = f"Analyse la SERP Google pour '{profession} à {city}'. Donne le top 5, les points forts des concurrents et une stratégie SEO pour l'objectif '{goal}'."
+            with st.spinner(f"Recherche Google en direct pour {profession} à {city}..."):
+                prompt = f"Expert SEO : Analyse la SERP pour '{profession} à {city}'. Donne le top 5, les points forts des concurrents et une stratégie SEO pour l'objectif '{goal}' en Français."
                 
                 # Appel à l'API
                 response = model.generate_content(prompt)
